@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinTrack — Control de Finanzas</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="logo">Fin<span>Track</span></div>
+
+    <div class="nav-item active" onclick="showPage('dashboard')">
+      <span class="icon">📊</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="showPage('movimientos')">
+      <span class="icon">💸</span> Movimientos
+    </div>
+    <div class="nav-item" onclick="showPage('graficas')">
+      <span class="icon">📈</span> Gráficas
+    </div>
+    <div class="nav-item" onclick="showPage('historial')">
+      <span class="icon">📅</span> Historial
+    </div>
+    <div class="nav-item" onclick="showPage('tarjetas')">
+      <span class="icon">💳</span> Tarjetas
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="day4-badge">
+        <span>🔔</span>
+        <div>
+          <div style="font-weight:700;margin-bottom:2px;">Recordatorio activo</div>
+          <div style="font-size:11px;opacity:0.8;">Día 4 de cada mes</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <h1 class="page-title">Hola, <span id="greeting-time"></span> 👋</h1>
+        <button class="btn btn-primary" onclick="openModal('modal-tx')">+ Nuevo movimiento</button>
+      </div>
+
+      <div id="notif-perm-bar" class="notification-perm" style="display:none">
+        <span>🔔 Activa las notificaciones para recibir el recordatorio del día 4</span>
+        <button class="btn btn-primary" style="padding:6px 14px;font-size:12px;" onclick="requestNotifPerm()">Activar</button>
+      </div>
+
+      <div class="balance-total">
+        <div>
+          <div class="balance-total-label">Balance total</div>
+          <div class="balance-total-amount" id="total-balance">$0</div>
+        </div>
+        <div style="text-align:right;position:relative;z-index:1;">
+          <div style="font-size:12px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Hoy</div>
+          <div id="today-date" style="font-size:14px;font-weight:600;color:var(--text2);"></div>
+        </div>
+      </div>
+
+      <div class="cards-grid" id="cards-grid"></div>
+
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="s-label">Ingresos del mes</div>
+          <div class="s-value green" id="month-incomes">$0</div>
+        </div>
+        <div class="summary-card">
+          <div class="s-label">Gastos del mes</div>
+          <div class="s-value red" id="month-expenses">$0</div>
+        </div>
+        <div class="summary-card">
+          <div class="s-label">Balance del mes</div>
+          <div class="s-value accent" id="month-balance">$0</div>
+        </div>
+        <div class="summary-card">
+          <div class="s-label">Movimientos hoy</div>
+          <div class="s-value accent" id="today-txs">0</div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-title">Movimientos recientes</div>
+        <button class="btn btn-secondary" onclick="showPage('movimientos')">Ver todos</button>
+      </div>
+      <div class="tx-list" id="recent-tx-list"></div>
+    </div>
+
+    <div class="page" id="page-movimientos">
+      <div class="page-header">
+        <h1 class="page-title">Movi<span>mientos</span></h1>
+        <button class="btn btn-primary" onclick="openModal('modal-tx')">+ Nuevo</button>
+      </div>
+      <div class="filter-bar">
+        <button class="filter-btn active" onclick="filterTx(this,'todos')">Todos</button>
+        <button class="filter-btn" onclick="filterTx(this,'ingreso')">Ingresos</button>
+        <button class="filter-btn" onclick="filterTx(this,'egreso')">Gastos</button>
+        <button class="filter-btn" onclick="filterTx(this,'Nequi')">Nequi</button>
+        <button class="filter-btn" onclick="filterTx(this,'Bancolombia')">Bancolombia</button>
+        <button class="filter-btn" onclick="filterTx(this,'MIO')">MIO</button>
+      </div>
+      <div class="tx-list" id="full-tx-list"></div>
+    </div>
+
+    <div class="page" id="page-graficas">
+      <div class="page-header">
+        <h1 class="page-title">Grá<span>ficas</span></h1>
+        <div class="month-nav">
+          <button onclick="changeChartMonth(-1)">‹</button>
+          <span id="chart-month-label">—</span>
+          <button onclick="changeChartMonth(1)">›</button>
+        </div>
+      </div>
+      <div class="chart-grid">
+        <div class="chart-card">
+          <h3>Gastos por categoría</h3>
+          <div class="chart-container"><canvas id="chart-cat"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Ingresos vs Gastos</h3>
+          <div class="chart-container"><canvas id="chart-balance"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Distribución por tarjeta</h3>
+          <div class="chart-container"><canvas id="chart-cards"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Evolución diaria del mes</h3>
+          <div class="chart-container"><canvas id="chart-daily"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page" id="page-historial">
+      <div class="page-header">
+        <h1 class="page-title">Histo<span>rial</span></h1>
+        <div style="display:flex;gap:10px;">
+          <div class="month-nav">
+            <button onclick="changeHistMonth(-1)">‹</button>
+            <span id="hist-month-label">—</span>
+            <button onclick="changeHistMonth(1)">›</button>
+          </div>
+          <button class="btn btn-secondary" onclick="exportPDF()">⬇ PDF</button>
+          <button class="btn btn-secondary" onclick="exportCSV()">⬇ CSV</button>
+        </div>
+      </div>
+      <div class="summary-grid" id="hist-summary"></div>
+      <div class="tx-list" id="hist-tx-list"></div>
+    </div>
+
+    <div class="page" id="page-tarjetas">
+      <div class="page-header">
+        <h1 class="page-title">Tar<span>jetas</span></h1>
+      </div>
+      <div class="cards-grid" id="tarjetas-detail"></div>
+    </div>
+
+  </main>
+</div>
+
+<div class="modal-overlay" id="modal-tx">
+  <div class="modal">
+    <h2>Nuevo movimiento</h2>
+
+    <div class="form-group">
+      <label>Tipo</label>
+      <div class="tipo-radio">
+        <label id="lbl-ingreso" onclick="selectTipo('ingreso')">
+          <input type="radio" name="tipo" value="ingreso"> <span>+ Ingreso</span>
+        </label>
+        <label id="lbl-egreso" onclick="selectTipo('egreso')">
+          <input type="radio" name="tipo" value="egreso"> <span>− Egreso</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Descripción</label>
+      <input type="text" id="tx-desc" class="form-control" placeholder="Ej: Almuerzo en restaurante">
+    </div>
+    <div class="form-group">
+      <label>Monto (COP)</label>
+      <input type="number" id="tx-amount" class="form-control" placeholder="0" min="0">
+    </div>
+    <div class="form-group">
+      <label>Tarjeta</label>
+      <select id="tx-card" class="form-control">
+        <option value="Nequi">Nequi</option>
+        <option value="Bancolombia">Bancolombia</option>
+        <option value="MIO">MIO</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Categoría</label>
+      <select id="tx-cat" class="form-control">
+        <option value="comida">🍔 Comida</option>
+        <option value="transporte">🚌 Transporte</option>
+        <option value="entretenimiento">🎬 Entretenimiento</option>
+        <option value="salud">💊 Salud</option>
+        <option value="servicios">💡 Servicios</option>
+        <option value="ropa">👗 Ropa</option>
+        <option value="otro">📦 Otro</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Fecha</label>
+      <input type="date" id="tx-date" class="form-control">
+    </div>
+    <div class="form-group">
+      <label>Nota (opcional)</label>
+      <input type="text" id="tx-note" class="form-control" placeholder="Nota adicional...">
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-tx')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTx()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-edit-balance">
+  <div class="modal">
+    <h2>Editar saldo de tarjeta</h2>
+    <input type="hidden" id="edit-card-id">
+    <div class="form-group">
+      <label>Nuevo saldo (COP)</label>
+      <input type="number" id="edit-balance-val" class="form-control" placeholder="0">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-balance')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCardBalance()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
