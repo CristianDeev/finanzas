@@ -129,7 +129,11 @@ body::before {
 .bottom-nav-inner {
     display:flex;
     align-items:stretch;
+    justify-content:center;
     height:100%;
+    max-width:500px;
+    margin:0 auto;
+    width:100%;
 }
 .bottom-nav-item {
     flex:1;
