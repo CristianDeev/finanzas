@@ -40,6 +40,15 @@ function showPage(p) {
   document.querySelectorAll('.nav-item').forEach(el => {
     if (el.textContent.toLowerCase().includes(p.substring(0, 4))) el.classList.add('active');
   });
+
+  // Sync bottom nav (mobile)
+  document.querySelectorAll('.bottom-nav-item').forEach(el => el.classList.remove('active'));
+  const bnItem = document.getElementById('bn-' + p);
+  if (bnItem) bnItem.classList.add('active');
+
+  // Scroll to top on page change (mobile)
+  document.querySelector('.main').scrollTo({ top: 0, behavior: 'smooth' });
+
   if (p === 'dashboard')   renderDashboard();
   if (p === 'movimientos') renderMovimientos();
   if (p === 'graficas')    renderGraficas();

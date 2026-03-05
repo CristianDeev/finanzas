@@ -2,7 +2,11 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0a0f">
   <title>FinTrack — Control de Finanzas</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,6 +22,7 @@
 
 <div class="app">
 
+  <!-- ========== SIDEBAR (desktop) ========== -->
   <aside class="sidebar">
     <div class="logo">Fin<span>Track</span></div>
 
@@ -48,12 +53,14 @@
     </div>
   </aside>
 
+  <!-- ========== MAIN CONTENT ========== -->
   <main class="main">
 
+    <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
       <div class="page-header">
         <h1 class="page-title">Hola, <span id="greeting-time"></span> 👋</h1>
-        <button class="btn btn-primary" onclick="openModal('modal-tx')">+ Nuevo movimiento</button>
+        <button class="btn btn-primary hide-mobile" onclick="openModal('modal-tx')">+ Nuevo movimiento</button>
       </div>
 
       <div id="notif-perm-bar" class="notification-perm" style="display:none">
@@ -100,10 +107,11 @@
       <div class="tx-list" id="recent-tx-list"></div>
     </div>
 
+    <!-- MOVIMIENTOS -->
     <div class="page" id="page-movimientos">
       <div class="page-header">
         <h1 class="page-title">Movi<span>mientos</span></h1>
-        <button class="btn btn-primary" onclick="openModal('modal-tx')">+ Nuevo</button>
+        <button class="btn btn-primary hide-mobile" onclick="openModal('modal-tx')">+ Nuevo</button>
       </div>
       <div class="filter-bar">
         <button class="filter-btn active" onclick="filterTx(this,'todos')">Todos</button>
@@ -116,6 +124,7 @@
       <div class="tx-list" id="full-tx-list"></div>
     </div>
 
+    <!-- GRÁFICAS -->
     <div class="page" id="page-graficas">
       <div class="page-header">
         <h1 class="page-title">Grá<span>ficas</span></h1>
@@ -145,10 +154,11 @@
       </div>
     </div>
 
+    <!-- HISTORIAL -->
     <div class="page" id="page-historial">
       <div class="page-header">
         <h1 class="page-title">Histo<span>rial</span></h1>
-        <div style="display:flex;gap:10px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
           <div class="month-nav">
             <button onclick="changeHistMonth(-1)">‹</button>
             <span id="hist-month-label">—</span>
@@ -162,6 +172,7 @@
       <div class="tx-list" id="hist-tx-list"></div>
     </div>
 
+    <!-- TARJETAS -->
     <div class="page" id="page-tarjetas">
       <div class="page-header">
         <h1 class="page-title">Tar<span>jetas</span></h1>
@@ -172,6 +183,32 @@
   </main>
 </div>
 
+<!-- ========== BOTTOM NAV (mobile) ========== -->
+<nav class="bottom-nav" id="bottom-nav">
+  <div class="bottom-nav-inner">
+    <div class="bottom-nav-item active" id="bn-dashboard" onclick="showPage('dashboard')">
+      <span class="bn-icon">📊</span>
+      <span class="bn-label">Inicio</span>
+    </div>
+    <div class="bottom-nav-item" id="bn-movimientos" onclick="showPage('movimientos')">
+      <span class="bn-icon">💸</span>
+      <span class="bn-label">Movim.</span>
+    </div>
+    <div class="bottom-nav-fab">
+      <button class="fab-btn" onclick="openModal('modal-tx')" aria-label="Nuevo movimiento">+</button>
+    </div>
+    <div class="bottom-nav-item" id="bn-graficas" onclick="showPage('graficas')">
+      <span class="bn-icon">📈</span>
+      <span class="bn-label">Gráficas</span>
+    </div>
+    <div class="bottom-nav-item" id="bn-historial" onclick="showPage('historial')">
+      <span class="bn-icon">📅</span>
+      <span class="bn-label">Historial</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ========== MODAL: NUEVO MOVIMIENTO ========== -->
 <div class="modal-overlay" id="modal-tx">
   <div class="modal">
     <h2>Nuevo movimiento</h2>
@@ -190,11 +227,11 @@
 
     <div class="form-group">
       <label>Descripción</label>
-      <input type="text" id="tx-desc" class="form-control" placeholder="Ej: Almuerzo en restaurante">
+      <input type="text" id="tx-desc" class="form-control" placeholder="Ej: Almuerzo en restaurante" autocomplete="off">
     </div>
     <div class="form-group">
       <label>Monto (COP)</label>
-      <input type="number" id="tx-amount" class="form-control" placeholder="0" min="0">
+      <input type="number" id="tx-amount" class="form-control" placeholder="0" min="0" inputmode="numeric">
     </div>
     <div class="form-group">
       <label>Tarjeta</label>
@@ -222,7 +259,7 @@
     </div>
     <div class="form-group">
       <label>Nota (opcional)</label>
-      <input type="text" id="tx-note" class="form-control" placeholder="Nota adicional...">
+      <input type="text" id="tx-note" class="form-control" placeholder="Nota adicional..." autocomplete="off">
     </div>
 
     <div class="modal-footer">
@@ -232,13 +269,14 @@
   </div>
 </div>
 
+<!-- ========== MODAL: EDITAR SALDO ========== -->
 <div class="modal-overlay" id="modal-edit-balance">
   <div class="modal">
     <h2>Editar saldo de tarjeta</h2>
     <input type="hidden" id="edit-card-id">
     <div class="form-group">
       <label>Nuevo saldo (COP)</label>
-      <input type="number" id="edit-balance-val" class="form-control" placeholder="0">
+      <input type="number" id="edit-balance-val" class="form-control" placeholder="0" inputmode="numeric">
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-edit-balance')">Cancelar</button>
